@@ -1,0 +1,6 @@
+project_id = "pizgtsnitsmjdunnhqtg"
+
+[storage.buckets.sagrum-clips]
+public = true
+file_size_limit = "50MiB"
+allowed_mime_types = ["video/mp4", "video/webm", "video/quicktime"]
