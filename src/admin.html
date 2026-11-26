@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0c1013">
+  <title>Admin | Sagrum_</title>
+  <link rel="stylesheet" href="/style/admin.css">
+  <script src="/scripts/admin.js" defer></script>
+</head>
+<body>
+  <div class="admin-glow admin-glow-one"></div>
+  <div class="admin-glow admin-glow-two"></div>
+  <header class="admin-topbar">
+    <a href="/" class="admin-brand"><img src="/Logo/Logo.png" alt="Sagrum_ logo"><span>CONTROL PANEL</span></a>
+    <a href="/" class="back-home">← Späť na web</a>
+  </header>
+
+  <main class="admin-wrap">
+    <section class="login-card" id="loginView">
+      <p class="admin-kicker">SAGRUM_ / PRIVATE AREA</p>
+      <h1>Admin<span>.</span></h1>
+      <p class="login-intro">Prihlás sa a uprav obsah svojho webu.</p>
+      <form id="loginForm" autocomplete="on">
+        <label for="username">Používateľské meno</label>
+        <input id="username" name="username" type="text" autocomplete="username" required maxlength="100">
+        <label for="password">Heslo</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button class="admin-button" type="submit">Prihlásiť sa <span>→</span></button>
+        <p class="form-message" id="loginMessage" role="status"></p>
+      </form>
+      <p class="login-footnote"><span class="lock-dot"></span> Len pre administrátora</p>
+    </section>
+
+    <section class="dashboard hidden" id="dashboardView">
+      <div class="dashboard-heading">
+        <div><p class="admin-kicker">SAGRUM_ / CONTROL PANEL</p><h1>Správa webu<span>.</span></h1><p class="login-intro">Texty a odkazy, ktoré uložíš, sa zobrazia návštevníkom.</p></div>
+        <button class="logout-button" id="logoutButton" type="button">Odhlásiť sa ↗</button>
+      </div>
+
+      <form class="editor-card" id="contentForm">
+        <div class="card-heading"><div><p class="admin-kicker">01 / TEXT CONTENT</p><h2>Texty na webe</h2></div><span class="card-mark">Aa</span></div>
+        <div class="field-grid">
+          <div class="field full-field"><label for="heroText">Krátky text na úvodnej stránke</label><textarea id="heroText" name="heroText" rows="3" maxlength="1200" placeholder="Doplň krátke predstavenie..."></textarea></div>
+          <div class="field full-field"><label for="portfolioText">Text v portfóliu</label><textarea id="portfolioText" name="portfolioText" rows="4" maxlength="4000" placeholder="Sem môžeš doplniť text o svojich projektoch..."></textarea></div>
+          <div class="field full-field"><label for="clipsText">Text pri clipoch</label><textarea id="clipsText" name="clipsText" rows="3" maxlength="1200" placeholder="Krátky popis klipov..."></textarea></div>
+          <div class="field"><label for="infoTitle">Nadpis stránky Info</label><input id="infoTitle" name="infoTitle" type="text" maxlength="100" placeholder="O mne"></div>
+          <div class="field full-field"><label for="infoText">Text na stránke Info</label><textarea id="infoText" name="infoText" rows="7" maxlength="6000" placeholder="Doplň informácie o sebe..."></textarea></div>
+        </div>
+        <div class="form-bottom"><p class="form-message" id="contentMessage" role="status"></p><button class="admin-button" type="submit">Uložiť texty <span>→</span></button></div>
+      </form>
+
+      <form class="editor-card" id="linksForm">
+        <div class="card-heading"><div><p class="admin-kicker">02 / SOCIALS</p><h2>Kontaktné odkazy</h2></div><span class="card-mark">↗</span></div>
+        <div class="field-grid">
+          <div class="field"><label for="instagramUrl">Instagram URL</label><input id="instagramUrl" name="instagramUrl" type="url" placeholder="https://instagram.com/..."></div>
+          <div class="field"><label for="tiktokUrl">TikTok URL</label><input id="tiktokUrl" name="tiktokUrl" type="url" placeholder="https://tiktok.com/@..."></div>
+          <div class="field"><label for="discordUrl">Discord server URL</label><input id="discordUrl" name="discordUrl" type="url" placeholder="https://discord.gg/..."></div>
+          <div class="field"><label for="bookingUrl">Objednať sa online URL</label><input id="bookingUrl" name="bookingUrl" type="url" placeholder="Zatiaľ môže zostať prázdne"></div>
+        </div>
+        <div class="form-bottom"><p class="form-message" id="linksMessage" role="status"></p><button class="admin-button" type="submit">Uložiť odkazy <span>→</span></button></div>
+      </form>
+
+      <section class="editor-card" id="clipsAdminCard">
+        <div class="card-heading"><div><p class="admin-kicker">03 / VIDEO LIBRARY</p><h2>Pridať clip</h2></div><span class="card-mark">▶</span></div>
+        <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+          <div class="field"><label for="clipTitle">Názov klipu</label><input id="clipTitle" name="title" type="text" required maxlength="100" placeholder="Názov videa"></div>
+          <div class="field"><label for="clipDescription">Krátky popis (nepovinné)</label><textarea id="clipDescription" name="description" rows="2" maxlength="500" placeholder="O čom je tento klip?"></textarea></div>
+          <label class="file-picker" for="videoFile"><span class="upload-symbol">＋</span><span><strong>Vybrať video</strong><small id="fileName">MP4, WebM alebo MOV · max. 120 MB</small></span><input id="videoFile" name="video" type="file" accept="video/mp4,video/webm,video/quicktime" required></label>
+          <div class="form-bottom"><p class="form-message" id="uploadMessage" role="status"></p><button class="admin-button" type="submit">Nahrať clip <span>↑</span></button></div>
+        </form>
+        <div class="clip-manager-heading"><h3>Nahraté clipy</h3><span id="clipCount">0 klipov</span></div>
+        <div class="clip-manager" id="clipManager"><p class="empty-manager">Zatiaľ si nenahral žiadny klip.</p></div>
+      </section>
+      <p class="dashboard-note">Zmeny sa ukladajú na server. Nahraté videá zostanú v priečinku <code>uploads/</code>.</p>
+    </section>
+  </main>
+</body>
+</html>
