@@ -2,5 +2,5 @@
 // Never put a Supabase secret/service_role key in this file.
 window.SAGRUM_SUPABASE_CONFIG = {
   url: 'https://pizgtsnitsmjdunnhqtg.supabase.co',
-  publishableKey: 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE'
+  publishableKey: 'sb_publishable_-2QNqV6pdZq-B5YTw-TSVA_L1xe9QVH'
 };
