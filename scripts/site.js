@@ -1,4 +1,4 @@
-'use strict';
+import { loadPublicContent } from './supabase-data.js';
 
 const setText = (selector, value) => {
   const element = document.querySelector(selector);
@@ -50,10 +50,7 @@ function createClipCard(clip) {
 
 async function loadSiteContent() {
   try {
-    const response = await fetch('/api/content', { headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error('Obsah sa nepodarilo načítať.');
-    const content = await response.json();
-
+    const content = await loadPublicContent();
     setText('#heroText', content.heroText);
     setText('#portfolioText', content.portfolioText);
     setText('#clipsText', content.clipsText);
@@ -82,7 +79,7 @@ async function loadSiteContent() {
     const grid = document.getElementById('clipsGrid');
     if (grid) {
       grid.replaceChildren();
-      if (Array.isArray(content.clips) && content.clips.length) {
+      if (content.clips.length) {
         content.clips.forEach((clip) => grid.append(createClipCard(clip)));
       } else {
         const empty = document.createElement('div');

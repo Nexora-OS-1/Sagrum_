@@ -1,4 +1,6 @@
-'use strict';
+import * as tus from 'https://esm.sh/tus-js-client@4';
+import { supabase, requireSupabase } from './supabase-client.js';
+import { addClip, deleteClip, loadPublicContent, saveContent } from './supabase-data.js';
 
 const $ = (selector) => document.querySelector(selector);
 const loginView = $('#loginView');
@@ -8,21 +10,6 @@ function showMessage(element, message, type = '') {
   if (!element) return;
   element.textContent = message || '';
   element.className = `form-message${type ? ` ${type}` : ''}`;
-}
-
-async function api(url, options = {}) {
-  const response = await fetch(url, {
-    credentials: 'same-origin',
-    ...options,
-    headers: {
-      ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-      Accept: 'application/json',
-      ...(options.headers || {})
-    }
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Požiadavka sa nepodarila.');
-  return data;
 }
 
 function showDashboard() {
@@ -36,24 +23,39 @@ function showLogin() {
   loginView.classList.remove('hidden');
 }
 
+async function hasAdminAccess() {
+  const client = requireSupabase();
+  const { data, error } = await client.rpc('is_sagrum_admin');
+  if (error) throw error;
+  return data === true;
+}
+
 async function checkSession() {
   try {
-    const data = await api('/api/admin/session');
-    if (data.authenticated) showDashboard();
-    else showLogin();
-  } catch {
+    const client = requireSupabase();
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error) throw error;
+    if (!session) return showLogin();
+    if (await hasAdminAccess()) showDashboard();
+    else {
+      await client.auth.signOut();
+      showLogin();
+      showMessage($('#loginMessage'), 'Tento účet nemá práva administrátora.', 'error');
+    }
+  } catch (error) {
     showLogin();
+    showMessage($('#loginMessage'), error.message, 'error');
   }
 }
 
 async function loadAdminContent() {
   try {
-    const content = await api('/api/content');
+    const content = await loadPublicContent();
     for (const field of ['heroText', 'portfolioText', 'clipsText', 'infoTitle', 'infoText', 'instagramUrl', 'tiktokUrl', 'discordUrl', 'bookingUrl']) {
       const input = document.getElementById(field);
       if (input) input.value = content[field] || '';
     }
-    renderClipManager(Array.isArray(content.clips) ? content.clips : []);
+    renderClipManager(content.clips);
   } catch (error) {
     showMessage($('#contentMessage'), error.message, 'error');
   }
@@ -87,20 +89,48 @@ function renderClipManager(clips) {
     remove.className = 'delete-clip';
     remove.type = 'button';
     remove.textContent = 'Odstrániť';
-    remove.addEventListener('click', () => deleteClip(clip.id, clip.title));
+    remove.addEventListener('click', () => deleteClipFromAdmin(clip.id, clip.title));
     row.append(info, remove);
     manager.append(row);
   });
 }
 
-async function deleteClip(id, title) {
+async function deleteClipFromAdmin(id, title) {
   if (!window.confirm(`Naozaj chceš odstrániť klip „${title || 'Bez názvu'}“?`)) return;
   try {
-    await api(`/api/admin/clips/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await deleteClip(id);
     await loadAdminContent();
   } catch (error) {
     showMessage($('#uploadMessage'), error.message, 'error');
   }
+}
+
+function uploadWithTus({ file, storagePath, accessToken, onProgress }) {
+  const config = window.SAGRUM_SUPABASE_CONFIG;
+  const projectRef = new URL(config.url).hostname.split('.')[0];
+  const upload = new tus.Upload(file, {
+    endpoint: `https://${projectRef}.storage.supabase.co/storage/v1/upload/resumable`,
+    retryDelays: [0, 3000, 5000, 10000, 20000],
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      apikey: config.publishableKey
+    },
+    uploadDataDuringCreation: true,
+    removeFingerprintOnSuccess: true,
+    chunkSize: 6 * 1024 * 1024,
+    metadata: {
+      bucketName: 'sagrum-clips',
+      objectName: storagePath,
+      contentType: file.type,
+      cacheControl: '3600'
+    },
+    onError: (error) => onProgress(error),
+    onProgress: (bytesUploaded, bytesTotal) => {
+      onProgress(null, Math.round((bytesUploaded / bytesTotal) * 100));
+    },
+    onSuccess: () => onProgress(null, 100, true)
+  });
+  upload.start();
 }
 
 $('#loginForm')?.addEventListener('submit', async (event) => {
@@ -109,9 +139,15 @@ $('#loginForm')?.addEventListener('submit', async (event) => {
   button.disabled = true;
   showMessage($('#loginMessage'), 'Prihlasujem...');
   try {
-    const username = $('#username').value;
+    const client = requireSupabase();
+    const email = $('#email').value.trim();
     const password = $('#password').value;
-    await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!await hasAdminAccess()) {
+      await client.auth.signOut();
+      throw new Error('Tento účet nemá práva administrátora.');
+    }
     $('#password').value = '';
     showDashboard();
   } catch (error) {
@@ -122,7 +158,7 @@ $('#loginForm')?.addEventListener('submit', async (event) => {
 });
 
 $('#logoutButton')?.addEventListener('click', async () => {
-  try { await api('/api/admin/logout', { method: 'POST', body: '{}' }); } catch { /* Expired sessions are already logged out. */ }
+  try { await supabase?.auth.signOut(); } catch { /* The local view still returns to login. */ }
   showLogin();
 });
 
@@ -134,8 +170,8 @@ $('#contentForm')?.addEventListener('submit', async (event) => {
   const fields = ['heroText', 'portfolioText', 'clipsText', 'infoTitle', 'infoText'];
   const payload = Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value]));
   try {
-    const result = await api('/api/admin/content', { method: 'PUT', body: JSON.stringify(payload) });
-    showMessage($('#contentMessage'), result.message, 'success');
+    await saveContent(payload);
+    showMessage($('#contentMessage'), 'Zmeny boli uložené.', 'success');
   } catch (error) {
     showMessage($('#contentMessage'), error.message, 'error');
   } finally {
@@ -151,8 +187,8 @@ $('#linksForm')?.addEventListener('submit', async (event) => {
   const fields = ['instagramUrl', 'tiktokUrl', 'discordUrl', 'bookingUrl'];
   const payload = Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value]));
   try {
-    const result = await api('/api/admin/content', { method: 'PUT', body: JSON.stringify(payload) });
-    showMessage($('#linksMessage'), result.message, 'success');
+    await saveContent(payload);
+    showMessage($('#linksMessage'), 'Zmeny boli uložené.', 'success');
   } catch (error) {
     showMessage($('#linksMessage'), error.message, 'error');
   } finally {
@@ -162,21 +198,42 @@ $('#linksForm')?.addEventListener('submit', async (event) => {
 
 $('#videoFile')?.addEventListener('change', (event) => {
   const file = event.target.files?.[0];
-  $('#fileName').textContent = file ? file.name : 'MP4, WebM alebo MOV · max. 120 MB';
+  $('#fileName').textContent = file ? file.name : 'MP4, WebM alebo MOV · max. 50 MB';
 });
 
 $('#uploadForm')?.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const button = event.currentTarget.querySelector('button[type="submit"]');
+  const form = event.currentTarget;
+  const button = form.querySelector('button[type="submit"]');
   const file = $('#videoFile').files?.[0];
   if (!file) return showMessage($('#uploadMessage'), 'Najprv vyber video súbor.', 'error');
   button.disabled = true;
-  showMessage($('#uploadMessage'), 'Nahrávam video...');
+  showMessage($('#uploadMessage'), 'Pripravujem nahrávanie...');
+  let completed = false;
   try {
-    await api('/api/admin/clips', { method: 'POST', body: new FormData(event.currentTarget) });
-    event.currentTarget.reset();
-    $('#fileName').textContent = 'MP4, WebM alebo MOV · max. 120 MB';
-    showMessage($('#uploadMessage'), 'Clip bol nahratý.', 'success');
+    const title = $('#clipTitle').value;
+    const description = $('#clipDescription').value;
+    await addClip({
+      title,
+      description,
+      file,
+      uploadFile: (options) => new Promise((resolve, reject) => {
+        uploadWithTus({
+          ...options,
+          onProgress: (error, percent, success) => {
+            if (error) return reject(error);
+            showMessage($('#uploadMessage'), `Nahrávam video... ${percent}%`);
+            if (success && !completed) {
+              completed = true;
+              resolve();
+            }
+          }
+        });
+      })
+    });
+    form.reset();
+    $('#fileName').textContent = 'MP4, WebM alebo MOV · max. 50 MB';
+    showMessage($('#uploadMessage'), 'Klip bol nahratý.', 'success');
     await loadAdminContent();
   } catch (error) {
     showMessage($('#uploadMessage'), error.message, 'error');
