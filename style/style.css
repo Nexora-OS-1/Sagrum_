@@ -315,6 +315,27 @@ button, input, textarea { font: inherit; }
 .contact-copy h1 { margin: 0; font-size: clamp(38px, 5vw, 62px); line-height: 1.08; letter-spacing: -.06em; }
 .contact-note { max-width: 320px; margin: 21px 0 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
 .contact-links { display: grid; gap: 11px; }
+.payment-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .85fr);
+  gap: clamp(28px, 6vw, 84px);
+  align-items: center;
+  padding: clamp(28px, 6vw, 72px);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(17, 29, 45, .92), rgba(9, 15, 25, .9));
+}
+.payment-panel h1 { margin: 0; font-size: clamp(42px, 7vw, 78px); line-height: .98; letter-spacing: -.055em; }
+.payment-panel h1 span { color: var(--cyan); }
+.payment-note { max-width: 430px; color: var(--muted); line-height: 1.7; }
+.payment-card { display: grid; gap: 13px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: rgba(4, 9, 16, .55); }
+.payment-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.payment-summary strong { color: #fff; font-size: 20px; white-space: nowrap; }
+.payment-button { width: 100%; justify-content: center; cursor: pointer; }
+.payment-button:disabled { opacity: .6; cursor: wait; }
+.payment-button-secondary { color: #fff; border: 1px solid var(--line); background: rgba(255, 255, 255, .035); }
+.payment-status { min-height: 22px; margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.payment-status.is-error { color: #ff8f8f; }
 .social-link {
   min-height: 64px;
   display: flex;
@@ -358,6 +379,7 @@ button, input, textarea { font: inherit; }
   .home-hero { min-height: 650px; }
   .home-intro { gap: 35px; }
   .contact-panel { grid-template-columns: 1fr; gap: 34px; }
+  .payment-panel { grid-template-columns: 1fr; gap: 26px; padding: 25px 19px; }
 }
 @media (max-width: 620px) {
   .site-header { min-height: 72px; gap: 12px; padding: 12px 16px; }
