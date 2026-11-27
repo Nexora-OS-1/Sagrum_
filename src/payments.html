@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d16">
+  <title>Platba | Sagrum_</title>
+  <link rel="stylesheet" href="/style/style.css">
+  <script src="/scripts/supabase-config.js"></script>
+  <script type="module" src="/scripts/payments.js"></script>
+</head>
+<body class="inner-page">
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Sagrum_ — domov"><img src="/Logo/Logo.png" alt="Sagrum_ logo"></a>
+    <nav class="main-nav" aria-label="Hlavná navigácia">
+      <a href="/">Domov</a><a href="/info">Info</a><a href="/portfolio">Portfólio</a><a href="/clips">Clipy</a><a href="/contact">Kontakt</a><a class="active" href="/payments">Platba</a>
+    </nav>
+    <a class="header-cta" href="/contact">Kontaktovať <span>↗</span></a>
+  </header>
+  <main class="page-main page-shell">
+    <a class="back-link" href="/">← Späť domov</a>
+    <section class="payment-panel reveal">
+      <div>
+        <p class="section-kicker">04 / PLATBA</p>
+        <h1>Testovacia<br><span>objednávka.</span></h1>
+        <p class="payment-note">Platobná brána je zatiaľ v testovacom režime. Testovacia objednávka má pevnú cenu 1,00 €.</p>
+      </div>
+      <div class="payment-card">
+        <div class="payment-summary">
+          <span>Sagrum_ — testovacia objednávka</span>
+          <strong>1,00 €</strong>
+        </div>
+        <button class="button button-primary payment-button" id="cardPayment" type="button">Zaplatiť kartou <span>↗</span></button>
+        <button class="button payment-button payment-button-secondary" id="paypalPayment" type="button">Zaplatiť cez PayPal <span>↗</span></button>
+        <p id="paymentStatus" class="payment-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer page-shell"><a class="footer-brand" href="/">SAGRUM<span>_</span></a><span class="footer-note">MADE WITH INTENTION.</span><a class="admin-entry" href="/admin">Admin ↗</a></footer>
+</body>
+</html>
