@@ -17,6 +17,7 @@ const routes = {
   'portfolio.html': 'portfolio',
   'clips.html': 'clips',
   'contact.html': 'contact',
+  'payments.html': 'payments',
   'admin.html': 'admin'
 };
 
