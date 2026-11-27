@@ -4,3 +4,6 @@ project_id = "pizgtsnitsmjdunnhqtg"
 public = true
 file_size_limit = "50MiB"
 allowed_mime_types = ["video/mp4", "video/webm", "video/quicktime"]
+
+[functions.payment-api]
+verify_jwt = false
