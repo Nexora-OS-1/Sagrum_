@@ -17,7 +17,7 @@ The original payment.py is a FastAPI server that calls localhost:8000. Supabase 
 
 The only configured product is a test order for EUR 1.00. Stripe accepts test secret keys only (sk_test_); PayPal uses its Sandbox API. Do not use live payment credentials with this test product.
 
-After choosing a public website host, add these values in Supabase Dashboard → Edge Functions → Secrets:
+After the GitHub Pages deployment creates the public website URL, add these values in Supabase Dashboard → Edge Functions → Secrets:
 
 - SITE_URL — the complete public URL of the website, including a trailing slash and any project path
 - STRIPE_SECRET_KEY — a Stripe test secret key
@@ -33,7 +33,9 @@ Subscribe it to checkout.session.completed. The Stripe success page also checks 
 
 ## Website hosting
 
-Supabase hosts the backend, not the HTML, CSS, and JavaScript website. Supabase Storage returns HTML as plain text on its default domain, and Edge Functions are for API endpoints. Publish the generated dist/ directory on a static website host. The connected GitHub repository can build it with npm run build.
+GitHub Pages hosts the static frontend. The workflow at `.github/workflows/deploy-pages.yml` runs `npm run build` on pushes to `main` and publishes `dist/`. The build prefixes links and assets with `/Sagrum_` for the GitHub Pages project URL. Supabase continues to host the database, storage, authentication, and payment API.
+
+The website URL will be `https://nexora-os-1.github.io/Sagrum_/` after Pages is enabled and the first workflow succeeds. Set `SITE_URL` in Supabase Edge Function Secrets to that exact URL, including the trailing slash.
 
 ## Editing
 
