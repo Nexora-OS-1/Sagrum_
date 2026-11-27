@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sourceDir = path.join(root, 'src');
 const outputDir = path.join(root, 'dist');
+const basePath = process.env.SITE_BASE_PATH?.replace(/\/$/, '') ?? '';
 
 await mkdir(outputDir, { recursive: true });
 await cp(path.join(root, 'style'), path.join(outputDir, 'style'), { recursive: true });
@@ -22,7 +23,10 @@ const routes = {
 };
 
 for (const [filename, route] of Object.entries(routes)) {
-  const page = await readFile(path.join(sourceDir, filename));
+  const sourcePage = await readFile(path.join(sourceDir, filename), 'utf8');
+  const page = basePath
+    ? sourcePage.replace(/((?:href|src|action)=["'])\/(?!\/)/gi, (_match, prefix) => `${prefix}${basePath}/`)
+    : sourcePage;
   await writeFile(path.join(outputDir, filename), page);
   if (route) {
     const routeDir = path.join(outputDir, route);
